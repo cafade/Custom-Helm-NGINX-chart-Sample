@@ -1,0 +1,26 @@
+{{- if and .Values.persistence.enabled (not .Values.persistence.existingClaim) -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.persistence.name | quote }}
+  annotations:
+  {{- with .Values.persistence.annotations  }}
+  {{ toYaml . | nindent 4 }}
+  {{- end }}
+    helm.sh/resource-policy: keep
+  labels:
+    {{- include "nginx-chart.labels" . | nindent 4 }}
+    app: {{ .Release.Name }}
+    {{- with .Values.persistence.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.size | quote }}
+  {{- if .Values.persistence.storageClass }}
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
+  {{- end }}
+{{- end -}}

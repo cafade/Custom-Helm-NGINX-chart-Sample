@@ -1,0 +1,61 @@
+{{- if .Values.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "nginx-chart.fullname" . }}
+  labels:
+    {{- include "nginx-chart.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "nginx-chart.fullname" . }}
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+  metrics:
+  {{- if .Values.autoscaling.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: cpu
+      {{- if semverCompare "<1.23-0" (include "nginx-chart.kubeVersion" .) }}
+      targetAverageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+      {{- else }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
+      {{- end }}
+  {{- end }}
+  {{- if .Values.autoscaling.targetMemoryUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      {{- if semverCompare "<1.23-0" (include "nginx-chart.kubeVersion" .) }}
+      targetAverageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+      {{- else }}
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.autoscaling.targetMemoryUtilizationPercentage }}
+      {{- end }}
+  {{- end }}
+  behavior:
+    scaleDown: 
+      policies: 
+      - type: Pods 
+        value: 2 
+        periodSeconds: 60 
+      - type: Percent
+        value: 10 
+        periodSeconds: 60
+      selectPolicy: Min 
+      stabilizationWindowSeconds: 120
+    scaleUp: 
+      policies:
+      - type: Pods
+        value: 2 
+        periodSeconds: 60
+      - type: Percent
+        value: 10 
+        periodSeconds: 80
+      selectPolicy: Max
+      stabilizationWindowSeconds: 0
+{{- end }}

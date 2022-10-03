@@ -1,0 +1,134 @@
+# Default values for nginx-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into the templates.
+
+replicaCount: 4
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+  # - name: registry-secret-nginx-chart
+nameOverride: ""
+fullnameOverride: ""
+
+topologySpreadConstraints:
+  # - labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: nginx-chart
+  #   maxSkew: 1
+  #   topologyKey: zone
+  #   whenUnsatisfiable: DoNotSchedule
+  # - labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: nginx-chart
+  #   maxSkew: 1
+  #   topologyKey: kubernetes.io/arch
+  #   whenUnsatisfiable: DoNotSchedule
+  - labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: nginx-chart
+    maxSkew: 1
+    topologyKey: node
+    whenUnsatisfiable: DoNotSchedule
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: "nginx"
+    # kubernetes.io/tls-acme: "true"
+    ## OR
+    # kubernetes.io/ingress.class: "traefik"
+    # cert-manager.io/cluster-issuer: letsencrypt-prod-nginx-chart
+    # ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: www.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: letsencrypt-prod-nginx-chart
+  #    hosts:
+  #      - example.com
+
+resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+# persistence:
+#   enabled: true
+#   name: nginx-chart-pv-claim
+#   accessMode: ReadWriteMany
+#   size: 1Gi
+#   # storageClass: ""
+#   annotations: {}
+#   labels:
+#     storage.k8s.io/name: nfs
+
+persistence:
+  enabled: false
+  name: ""
+  accessMode: ReadWriteOnce
+  size: 128Mi
+  # storageClass: ""
+  annotations: {}
+  labels: {}
+
+volumeMounts: []
+  # - name: persistent-storage
+  #   mountPath: /etc/certs/
+  #   # subPath: persistent/certs
+
+volumes: []
+  # - name: persistent-storage
+  #   persistentVolumeClaim:
+  #     claimName: nginx-chart-pv-claim
+
+# For autoscaling to work the Pods need to have defined the limit of  memory and CPU resources
+autoscaling:
+  # If 'enabled' is set to true, 'replicaCount' will be skipped
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
