@@ -6,7 +6,7 @@ replicaCount: 4
 
 image:
   repository: nginx
-  pullPolicy: IfNotPresent
+  pullPolicy: IfNotPresent # Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
 
@@ -28,11 +28,17 @@ topologySpreadConstraints:
   #   maxSkew: 1
   #   topologyKey: kubernetes.io/arch
   #   whenUnsatisfiable: DoNotSchedule
+  # - labelSelector:
+  #     matchLabels:
+  #       app.kubernetes.io/name: nginx-chart
+  #   maxSkew: 1
+  #   topologyKey: node
+  #   whenUnsatisfiable: DoNotSchedule
   - labelSelector:
       matchLabels:
         app.kubernetes.io/name: nginx-chart
     maxSkew: 1
-    topologyKey: node
+    topologyKey: kubernetes.io/hostname
     whenUnsatisfiable: DoNotSchedule
 
 serviceAccount:
@@ -80,6 +86,20 @@ ingress:
   #  - secretName: letsencrypt-prod-nginx-chart
   #    hosts:
   #      - example.com
+
+# To be used in conjunction with cert-manager
+traefikIngresRoute:
+  enabled: false
+  ClusterIssuerName: ""
+  sslRedirect: "true"
+  entryPoints:
+    - web
+    - websecure
+  routes:
+    - host: example.com
+      path: /
+    - host: www.example.com
+      path: /
 
 resources: {}
   # limits:
@@ -132,3 +152,18 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+  # # Uncomment 'podAntiAffinity' Do not run more than one replica inside each node
+  # podAntiAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     - labelSelector:
+  #         matchLabels:
+  #           app.kubernetes.io/name: nginx-chart
+  #       topologyKey: kubernetes.io/hostname
+  # nodeAffinity:
+  #   requiredDuringSchedulingIgnoredDuringExecution:
+  #     nodeSelectorTerms:
+  #     - matchExpressions:
+  #       - key: agentpool
+  #         operator: NotIn
+  #         values:
+  #         - systempool

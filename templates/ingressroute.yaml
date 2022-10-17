@@ -1,0 +1,27 @@
+{{- if .Values.traefikIngresRoute.enabled -}}
+{{- $ingressRouteName := printf "%s-%s" (include "nginx-chart.fullname" .) "ingress-route" -}}
+{{- $secretName := printf "%s-%s" (include "nginx-chart.fullname" .) "ingress-secret" -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ $ingressRouteName }}
+  annotations:
+    cert-manager.io/cluster-issuer: {{ .Values.traefikIngresRoute.ClusterIssuerName }}
+    ingress.kubernetes.io/ssl-redirect: {{ (.Values.traefikIngresRoute.sslRedirect | default "true") | quote }}
+    kubernetes.io/ingress.class: traefik
+spec:
+  entryPoints:
+    {{- toYaml .Values.traefikIngresRoute.entryPoints | nindent 4 }}
+  routes:
+    {{- range .Values.traefikIngresRoute.routes }}
+    - kind: Rule
+      match: Host(`{{ .host }}`) && PathPrefix(`{{ .path }}`)
+      services:
+      - kind: Service
+        name: nginx-chart
+        port: {{ $svcPort }}
+    {{- end }}
+  tls:
+    secretName: {{ $secretName }}
+{{- end }}

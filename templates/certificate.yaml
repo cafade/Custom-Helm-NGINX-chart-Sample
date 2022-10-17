@@ -1,0 +1,17 @@
+{{- if .Values.traefikIngresRoute.enabled -}}
+{{- $secretName := printf "%s-%s" (include "nginx-chart.fullname" .) "ingress-secret" -}}
+{{- $svcPort := .Values.service.port -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ $secretName }}
+spec:
+  dnsNames:
+    {{- range .Values.traefikIngresRoute.routes }}
+      - {{ .host | quote }}
+    {{- end }}
+  secretName: {{ $secretName }}
+  issuerRef:
+    name: {{ .Values.traefikIngresRoute.ClusterIssuerName }}
+    kind: ClusterIssuer
+{{- end }}
