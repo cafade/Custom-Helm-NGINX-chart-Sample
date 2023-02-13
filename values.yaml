@@ -117,6 +117,28 @@ traefikIngresRoute:
     - host: www.example.com
       path: /
 
+# livenessProbe: {}
+livenessProbe: 
+  httpGet:
+    path: /
+    port: http
+  failureThreshold: 3
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 2
+
+# readinessProbe: {}
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  failureThreshold: 1
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 2
+
 resources: {}
   # limits:
   #   cpu: 100m
