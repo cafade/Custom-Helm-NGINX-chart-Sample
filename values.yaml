@@ -2,10 +2,10 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into the templates.
 
-replicaCount: 4
+replicaCount: 2
 
 image:
-  repository: nginx
+  repository: ""
   pullPolicy: IfNotPresent # Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: ""
@@ -55,13 +55,29 @@ securityContext: {}
   # capabilities:
   #   drop:
   #   - ALL
-  # readOnlyRootFilesystem: true
+  #   - CAP_NET_RAW
+  # # readOnlyRootFilesystem: true
   # runAsNonRoot: true
   # runAsUser: 1000
+  # allowPrivilegeEscalation: false
+  # seccompProfile:
+  #   type: RuntimeDefault
 
+# container: []
+container:
+  ports:
+    - name: http
+      containerPort: 8080
+      protocol: TCP
+
+# service: []
 service:
   type: ClusterIP
-  port: 80
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
 
 ingress:
   enabled: false
